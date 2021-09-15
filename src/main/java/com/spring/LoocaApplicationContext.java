@@ -4,11 +4,8 @@ import com.spring.annotation.Component;
 import com.spring.annotation.ComponentScan;
 import com.spring.annotation.Scope;
 import com.spring.tool.CommonConstant;
-import com.sun.deploy.util.StringUtils;
 
 import java.io.File;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.HashMap;
