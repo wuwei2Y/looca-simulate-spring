@@ -5,6 +5,7 @@ import com.spring.annotation.ComponentScan;
 import com.spring.annotation.Scope;
 import com.spring.tool.CommonConstant;
 
+import java.beans.Introspector;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -186,10 +187,12 @@ public class LoocaApplicationContext {
                                 beanDefinition.setScope(CommonConstant.SINGLETON);
                             }
 
-                            /**
-                             * beanName解析起来比较复杂，此处直接使用@Component的值
-                             */
-                            beanDefinitionMap.put(scanClass.getAnnotation(Component.class).value(), beanDefinition);
+                            String beanName = scanClass.getAnnotation(Component.class).value();
+                            if("".equals(beanName)) {
+                                // 如果没有指定bean的名字，则默认生成一个beanName
+                                beanName = Introspector.decapitalize(scanClass.getSimpleName());
+                            }
+                            beanDefinitionMap.put(beanName, beanDefinition);
 
                         }
 
