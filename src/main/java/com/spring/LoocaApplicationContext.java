@@ -1,5 +1,17 @@
 package com.spring;
 
+import com.spring.annotation.Component;
+import com.spring.annotation.ComponentScan;
+import com.spring.annotation.Scope;
+import com.spring.tool.CommonConstant;
+import com.sun.deploy.util.StringUtils;
+
+import java.io.File;
+import java.lang.annotation.Annotation;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 模拟Spring中的ApplicationContext（以AnnotationConfigApplicationContext为例）
  * @author looca
@@ -12,11 +24,20 @@ public class LoocaApplicationContext {
     private Class configClass;
 
     /**
+     * 用来存放BeanDefinition的map
+     * key为beanName，value为BeanDefinition
+     */
+    private Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+
+    /**
      * 构造参数
      * @param configClass 外部传入的配置类
      */
     public LoocaApplicationContext(Class configClass) {
         this.configClass = configClass;
+
+        // 扫描bean
+        doScan(configClass);
     }
 
     /**
@@ -27,5 +48,93 @@ public class LoocaApplicationContext {
     public Object getBean(String beanName) {
         // 后续补充
         return null;
+    }
+
+    /**
+     *
+     * 模拟扫描bean
+     * 1. 判断传入的配置类是否带有@ComponentScan注解
+     * 2. 获取@ComponentScan注解配置的扫描路径
+     * 3. 获取扫描路径下所有的class文件并遍历
+     * 4. 加载bean判断bean是否有@Component注解
+     * 5. 处理含有@Component注解的bean，创建对应的beanDefinition
+     * 6. 判断bean是单例还是原型，设置beanDefinition，存入beanDefinitionMap
+     *
+     * @param configClass 配置类
+     */
+    private void doScan(Class configClass) {
+        if (configClass.isAnnotationPresent(ComponentScan.class)) {
+
+            // 获取@ComponentScan
+            ComponentScan componentScanAnnotation = (ComponentScan) configClass.getAnnotation(ComponentScan.class);
+            // 获取@ComponentScan配置的扫描路径(e.g: com.looca.service)
+            String scanPath = componentScanAnnotation.value();
+            // 将路径转换为文件系统路径(e.g com/looca/service)
+            scanPath = scanPath.replace(".", "/");
+
+            /**
+             * 前面获取的扫描路径是项目路径，真正应该扫描的应该是.class文件的路径
+             * .class文件是由AppClassLoader来加载的，因此此处先获取AppClassLoader
+             */
+            ClassLoader appClassLoader = LoocaApplicationContext.class.getClassLoader();
+            // 获取需要扫描的目录
+            URL resource = appClassLoader.getResource(scanPath);
+            File dir = new File(resource.getFile());
+
+            // 判断获取的是否为目录
+            if (dir.isDirectory()) {
+                // 如果是则遍历目录中的文件
+                for(File file : dir.listFiles()) {
+
+                    /**
+                     * 判断文件是否有@Component注解
+                     * 先使用类加载器加载文件对应的类(需要将文件路径转换成项目类路径
+                     *   e.g: x:xxx/target/class/com/looca/service/TestService.class -> com.looca.service.TestService)
+                     */
+                    // 获取文件对应的类路径
+                    String absolutePath = file.getAbsolutePath();
+                    absolutePath = absolutePath.substring(absolutePath.lastIndexOf("com"), absolutePath.lastIndexOf(".class"));
+                    absolutePath = absolutePath.replace("\\", ".");
+
+                    try {
+
+                        // 加载该类
+                        Class<?> scanClass = appClassLoader.loadClass(absolutePath);
+                        // 判断该类是否有@Component注解，有的话说明该类是spring bean
+                        if (scanClass.isAnnotationPresent(Component.class)) {
+
+                            //创建BeanDefinition来封装bean的属性，方便后续操作
+                            BeanDefinition beanDefinition = new BeanDefinition();
+                            beanDefinition.setType(scanClass);
+
+                            /**
+                             * 判断该类是否是单例bean，如果是原型（多例）则不在此处加载，假定当前只有单例和原型两种
+                             *
+                             * 1. 如果没有@Scope注解则默认为单例bean
+                             * 2. 如果@Scope注解没有值或者值为singleton则为单例bean
+                             * 3. 如果有@Scope注解并且@Scope注解的值为scope则为原型(多例)bean
+                             */
+                            if (scanClass.isAnnotationPresent(Scope.class)) {
+                                beanDefinition.setScope(scanClass.getAnnotation(Scope.class).value());
+                            } else {
+                                // 单例bean
+                                beanDefinition.setScope(CommonConstant.SINGLETON);
+                            }
+
+                            /**
+                             * beanName解析起来比较复杂，此处直接使用@Component的值
+                             */
+                            beanDefinitionMap.put(scanClass.getAnnotation(Component.class).value(), beanDefinition);
+
+                        }
+
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+
+        }
     }
 }

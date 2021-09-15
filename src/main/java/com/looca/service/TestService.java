@@ -6,7 +6,7 @@ import com.spring.annotation.Component;
  * 测试用例service
  * @author looca
  */
-@Component
+@Component("testService")
 public class TestService {
 
     public void test() {
