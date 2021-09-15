@@ -28,6 +28,11 @@ public class LoocaApplicationContext {
      * key为beanName，value为BeanDefinition
      */
     private Map<String, BeanDefinition> beanDefinitionMap = new HashMap<>();
+    /**
+     * 用来存放单例bean的map，也就是单例池
+     * key为beanName, value为bean实例
+     */
+    private Map<String, Object> singletonObjects = new HashMap<>();
 
     /**
      * 构造参数
@@ -38,16 +43,59 @@ public class LoocaApplicationContext {
 
         // 扫描bean
         doScan(configClass);
+
+        // 遍历beanDefinitionMap并创建单例bean
+        for (Map.Entry<String, BeanDefinition> entry : beanDefinitionMap.entrySet()) {
+            String beanName = entry.getKey();
+            BeanDefinition beanDefinition = entry.getValue();
+
+            if (CommonConstant.SINGLETON.equals(beanDefinition.getScope())) {
+                // 单例bean
+                Object singletonBean = doCreateBean(beanName, beanDefinition);
+                singletonObjects.put(beanName, singletonBean);
+            }
+        }
+    }
+
+    /**
+     * 模拟创建bean
+     *
+     * @param beanName bean名称
+     * @param beanDefinition bean定义
+     * @return bean实例
+     */
+    private Object doCreateBean(String beanName, BeanDefinition beanDefinition) {
+        // 后续补充
+        return null;
     }
 
     /**
      * 模拟获取bean
+     * 1. 判断beanName对应的bean定义是否存在
+     * 2. 判断需要获取的bean是单例还是原型的
+     * 3. 单例bean从单例池中直接获取
+     * 4. 原型bean则重新创建一个bean实例
+     *
      * @param beanName bean名称
      * @return bean实例
      */
     public Object getBean(String beanName) {
-        // 后续补充
-        return null;
+
+        // 判断是否有beanName对应的beanDefinition
+        if (!beanDefinitionMap.containsKey(beanName)) {
+            throw new NullPointerException("没有找到对应的bean");
+        }
+
+        BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
+        if(CommonConstant.SINGLETON.equals(beanDefinition.getScope())) {
+            // 如果是单例的则直接从单例池中获取bean实例
+            Object singletonBean = singletonObjects.get(beanName);
+            return singletonBean;
+        } else {
+            // 如果是多例的则重新创建bean实例
+            Object prototypeBean = doCreateBean(beanName, beanDefinition);
+            return prototypeBean;
+        }
     }
 
     /**
