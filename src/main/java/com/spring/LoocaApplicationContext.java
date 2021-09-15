@@ -8,6 +8,8 @@ import com.sun.deploy.util.StringUtils;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,13 +61,31 @@ public class LoocaApplicationContext {
 
     /**
      * 模拟创建bean
+     * 1. 根据bean定义获取bean对应的.class
+     * 2. 经过推断构造器后选用合适的构造器来创建类(此处不在进行推断，仅使用无参构造器来创建类)
+     * 3.
      *
      * @param beanName bean名称
      * @param beanDefinition bean定义
      * @return bean实例
      */
     private Object doCreateBean(String beanName, BeanDefinition beanDefinition) {
-        // 后续补充
+
+        // 获取类对应的class
+        Class clazz = beanDefinition.getType();
+        // 使用无参构造器来创建类
+        try {
+            Object instance = clazz.getConstructor().newInstance();
+            return instance;
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
