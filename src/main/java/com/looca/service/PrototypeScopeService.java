@@ -9,6 +9,6 @@ import com.spring.tool.CommonConstant;
  * @author looca
  */
 @Component()
-@Scope(CommonConstant.PROTOTYPE)
+@Scope(CommonConstant.SCOPE_PROTOTYPE)
 public class PrototypeScopeService {
 }

@@ -1,5 +1,6 @@
 package com.spring;
 
+import com.spring.annotation.Autowired;
 import com.spring.annotation.Component;
 import com.spring.annotation.ComponentScan;
 import com.spring.annotation.Scope;
@@ -7,6 +8,7 @@ import com.spring.tool.CommonConstant;
 
 import java.beans.Introspector;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.HashMap;
@@ -49,7 +51,7 @@ public class LoocaApplicationContext {
             String beanName = entry.getKey();
             BeanDefinition beanDefinition = entry.getValue();
 
-            if (CommonConstant.SINGLETON.equals(beanDefinition.getScope())) {
+            if (CommonConstant.SCOPE_SINGLETON.equals(beanDefinition.getScope())) {
                 // 单例bean
                 Object singletonBean = doCreateBean(beanName, beanDefinition);
                 singletonObjects.put(beanName, singletonBean);
@@ -61,7 +63,7 @@ public class LoocaApplicationContext {
      * 模拟创建bean
      * 1. 根据bean定义获取bean对应的.class
      * 2. 经过推断构造器后选用合适的构造器来创建类(此处不在进行推断，仅使用无参构造器来创建类)
-     * 3.
+     * 3. 属性填充
      *
      * @param beanName bean名称
      * @param beanDefinition bean定义
@@ -74,6 +76,21 @@ public class LoocaApplicationContext {
         // 使用无参构造器来创建类
         try {
             Object instance = clazz.getConstructor().newInstance();
+
+            // 属性填充
+            for (Field field : clazz.getDeclaredFields()) {
+
+                // 如果属性有@Autowired注解修饰则进行自动装配
+                if (field.isAnnotationPresent(Autowired.class)) {
+
+                    field.setAccessible(true);
+                    // 此处为了简化直接根据name来找对应的bean来进行自动装配
+                    field.set(instance, getBean(field.getName()));
+
+                }
+
+            }
+
             return instance;
         } catch (InstantiationException e) {
             e.printStackTrace();
@@ -105,9 +122,13 @@ public class LoocaApplicationContext {
         }
 
         BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
-        if(CommonConstant.SINGLETON.equals(beanDefinition.getScope())) {
+        if(CommonConstant.SCOPE_SINGLETON.equals(beanDefinition.getScope())) {
             // 如果是单例的则直接从单例池中获取bean实例
             Object singletonBean = singletonObjects.get(beanName);
+            if(singletonBean == null) {
+                singletonBean = doCreateBean(beanName, beanDefinition);
+                singletonObjects.put(beanName, singletonBean);
+            }
             return singletonBean;
         } else {
             // 如果是多例的则重新创建bean实例
@@ -184,7 +205,7 @@ public class LoocaApplicationContext {
                                 beanDefinition.setScope(scanClass.getAnnotation(Scope.class).value());
                             } else {
                                 // 单例bean
-                                beanDefinition.setScope(CommonConstant.SINGLETON);
+                                beanDefinition.setScope(CommonConstant.SCOPE_SINGLETON);
                             }
 
                             String beanName = scanClass.getAnnotation(Component.class).value();
