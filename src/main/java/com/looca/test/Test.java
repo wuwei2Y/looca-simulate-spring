@@ -14,5 +14,7 @@ public class Test {
 
         LoocaApplicationContext applicationContext = new LoocaApplicationContext(AppConfig.class);
         TestService testService = (TestService) applicationContext.getBean("testService");
+
+        testService.test();
     }
 }
