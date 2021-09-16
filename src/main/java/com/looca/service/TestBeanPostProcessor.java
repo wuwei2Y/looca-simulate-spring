@@ -6,7 +6,8 @@ import com.spring.annotation.Component;
 /**
  * 模拟自定义Bean后置处理器
  */
-@Component
+// 模拟bean自定义后置器
+//@Component
 public class TestBeanPostProcessor implements BeanPostProcessor {
 
     /**
@@ -18,7 +19,7 @@ public class TestBeanPostProcessor implements BeanPostProcessor {
      */
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
-        System.out.println("TestBeanPostProcessorService:bean初始化前执行方法");
+        System.out.println("TestBeanPostProcessorService:" + beanName + "初始化前执行方法");
         return bean;
     }
 
@@ -31,7 +32,7 @@ public class TestBeanPostProcessor implements BeanPostProcessor {
      */
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) {
-        System.out.println("TestBeanPostProcessorService:bean初始化后执行方法");
+        System.out.println("TestBeanPostProcessorService:" + beanName + "初始化后执行方法");
         return bean;
     }
 }

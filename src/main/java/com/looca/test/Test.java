@@ -1,9 +1,7 @@
 package com.looca.test;
 
 import com.looca.AppConfig;
-import com.looca.service.InitializingBeanService;
-import com.looca.service.PrototypeScopeService;
-import com.looca.service.TestService;
+import com.looca.service.*;
 import com.spring.LoocaApplicationContext;
 
 /**
@@ -21,8 +19,8 @@ public class Test {
         LoocaApplicationContext applicationContext = new LoocaApplicationContext(AppConfig.class);
 
         // region 测试单例bean获取结果
-        TestService testService = (TestService) applicationContext.getBean("testService");
-        System.out.println(testService);
+//        TestService testService = (TestService) applicationContext.getBean("testService");
+//        System.out.println(testService);
 //        System.out.println((TestService) applicationContext.getBean("testService"));
 //        System.out.println((TestService) applicationContext.getBean("testService"));
         // endregion
@@ -37,6 +35,8 @@ public class Test {
 //        testService.testAutowired();
         // endregion
 
+        IAopService aopService = (IAopService) applicationContext.getBean("aopService");
+        aopService.test();
 
     }
 }

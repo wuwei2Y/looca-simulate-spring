@@ -110,7 +110,7 @@ public class LoocaApplicationContext {
 
             // 初始化后
             for(BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
-                beanPostProcessor.postProcessAfterInitialization(instance, beanName);
+                instance = beanPostProcessor.postProcessAfterInitialization(instance, beanName);
             }
 
             return instance;
