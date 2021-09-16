@@ -23,22 +23,20 @@ public class Test {
         // region 测试单例bean获取结果
         TestService testService = (TestService) applicationContext.getBean("testService");
         System.out.println(testService);
-        System.out.println((TestService) applicationContext.getBean("testService"));
-        System.out.println((TestService) applicationContext.getBean("testService"));
+//        System.out.println((TestService) applicationContext.getBean("testService"));
+//        System.out.println((TestService) applicationContext.getBean("testService"));
         // endregion
 
         // region 测试原型bean获取结果
-        System.out.println((PrototypeScopeService) applicationContext.getBean("prototypeScopeService"));
-        System.out.println((PrototypeScopeService) applicationContext.getBean("prototypeScopeService"));
-        System.out.println((PrototypeScopeService) applicationContext.getBean("prototypeScopeService"));
+//        System.out.println((PrototypeScopeService) applicationContext.getBean("prototypeScopeService"));
+//        System.out.println((PrototypeScopeService) applicationContext.getBean("prototypeScopeService"));
+//        System.out.println((PrototypeScopeService) applicationContext.getBean("prototypeScopeService"));
         // endregion
 
         // region 测试@Autowired
-        testService.testAutowired();
+//        testService.testAutowired();
         // endregion
 
-        // region 测试实现InitializingBean来自定义初始化逻辑
-//        InitializingBeanService initializingBeanService =
-        applicationContext.getBean("initializingBeanService");
+
     }
 }

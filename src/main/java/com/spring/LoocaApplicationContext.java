@@ -12,7 +12,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,6 +38,10 @@ public class LoocaApplicationContext {
      * key为beanName, value为bean实例
      */
     private Map<String, Object> singletonObjects = new HashMap<>();
+    /**
+     * 用来存放实现了BeanPostProcessor的列表，此处使用ArrayList来代替LinkedList
+     */
+    private List<BeanPostProcessor> beanPostProcessorList = new ArrayList<>();
 
     /**
      * 构造参数
@@ -92,9 +98,19 @@ public class LoocaApplicationContext {
                 }
             }
 
+            // 初始化前
+            for(BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                beanPostProcessor.postProcessBeforeInitialization(instance, beanName);
+            }
+
             // 初始化
             if(instance instanceof InitializingBean) {
                 ((InitializingBean)instance).afterPropertiesSet();
+            }
+
+            // 初始化后
+            for(BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                beanPostProcessor.postProcessAfterInitialization(instance, beanName);
             }
 
             return instance;
@@ -144,7 +160,6 @@ public class LoocaApplicationContext {
     }
 
     /**
-     *
      * 模拟扫描bean
      * 1. 判断传入的配置类是否带有@ComponentScan注解
      * 2. 获取@ComponentScan注解配置的扫描路径
@@ -196,34 +211,45 @@ public class LoocaApplicationContext {
                         // 判断该类是否有@Component注解，有的话说明该类是spring bean
                         if (scanClass.isAnnotationPresent(Component.class)) {
 
-                            //创建BeanDefinition来封装bean的属性，方便后续操作
-                            BeanDefinition beanDefinition = new BeanDefinition();
-                            beanDefinition.setType(scanClass);
-
-                            /**
-                             * 判断该类是否是单例bean，如果是原型（多例）则不在此处加载，假定当前只有单例和原型两种
-                             *
-                             * 1. 如果没有@Scope注解则默认为单例bean
-                             * 2. 如果@Scope注解没有值或者值为singleton则为单例bean
-                             * 3. 如果有@Scope注解并且@Scope注解的值为scope则为原型(多例)bean
-                             */
-                            if (scanClass.isAnnotationPresent(Scope.class)) {
-                                beanDefinition.setScope(scanClass.getAnnotation(Scope.class).value());
+                            // 判断类是否实现了BeanPostProcessor
+                            if (BeanPostProcessor.class.isAssignableFrom(scanClass)) {
+                                BeanPostProcessor beanPostProcessor = (BeanPostProcessor) scanClass.getConstructor().newInstance();
+                                beanPostProcessorList.add(beanPostProcessor);
                             } else {
-                                // 单例bean
-                                beanDefinition.setScope(CommonConstant.SCOPE_SINGLETON);
-                            }
+                                //创建BeanDefinition来封装bean的属性，方便后续操作
+                                BeanDefinition beanDefinition = new BeanDefinition();
+                                beanDefinition.setType(scanClass);
 
-                            String beanName = scanClass.getAnnotation(Component.class).value();
-                            if("".equals(beanName)) {
-                                // 如果没有指定bean的名字，则默认生成一个beanName
-                                beanName = Introspector.decapitalize(scanClass.getSimpleName());
-                            }
-                            beanDefinitionMap.put(beanName, beanDefinition);
+                                /**
+                                 * 判断该类是否是单例bean，如果是原型（多例）则不在此处加载，假定当前只有单例和原型两种
+                                 *
+                                 * 1. 如果没有@Scope注解则默认为单例bean
+                                 * 2. 如果@Scope注解没有值或者值为singleton则为单例bean
+                                 * 3. 如果有@Scope注解并且@Scope注解的值为scope则为原型(多例)bean
+                                 */
+                                if (scanClass.isAnnotationPresent(Scope.class)) {
+                                    beanDefinition.setScope(scanClass.getAnnotation(Scope.class).value());
+                                } else {
+                                    // 单例bean
+                                    beanDefinition.setScope(CommonConstant.SCOPE_SINGLETON);
+                                }
 
+                                String beanName = scanClass.getAnnotation(Component.class).value();
+                                if("".equals(beanName)) {
+                                    // 如果没有指定bean的名字，则默认生成一个beanName
+                                    beanName = Introspector.decapitalize(scanClass.getSimpleName());
+                                }
+                                beanDefinitionMap.put(beanName, beanDefinition);
+                            }
                         }
 
-                    } catch (ClassNotFoundException e) {
+                    } catch (ClassNotFoundException | NoSuchMethodException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    } catch (InstantiationException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
                         e.printStackTrace();
                     }
 

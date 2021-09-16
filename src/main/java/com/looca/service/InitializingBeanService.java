@@ -8,7 +8,8 @@ import com.spring.annotation.Component;
  *
  * @author looca
  */
-@Component
+// 测试实现InitializingBean来自定义初始化方法
+//@Component
 public class InitializingBeanService implements InitializingBean {
 
     /**
