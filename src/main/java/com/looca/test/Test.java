@@ -35,8 +35,10 @@ public class Test {
 //        testService.testAutowired();
         // endregion
 
+        // region 测试aop
         IAopService aopService = (IAopService) applicationContext.getBean("aopService");
         aopService.test();
+        // endregion
 
     }
 }
