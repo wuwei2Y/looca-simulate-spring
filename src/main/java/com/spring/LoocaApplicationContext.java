@@ -10,6 +10,7 @@ import java.beans.Introspector;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,6 +65,7 @@ public class LoocaApplicationContext {
      * 1. 根据bean定义获取bean对应的.class
      * 2. 经过推断构造器后选用合适的构造器来创建类(此处不在进行推断，仅使用无参构造器来创建类)
      * 3. 属性填充
+     * 4. 初始化
      *
      * @param beanName bean名称
      * @param beanDefinition bean定义
@@ -88,7 +90,11 @@ public class LoocaApplicationContext {
                     field.set(instance, getBean(field.getName()));
 
                 }
+            }
 
+            // 初始化
+            if(instance instanceof InitializingBean) {
+                ((InitializingBean)instance).afterPropertiesSet();
             }
 
             return instance;

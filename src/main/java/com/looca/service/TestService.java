@@ -18,7 +18,7 @@ public class TestService {
     }
 
     public void testAutowired() {
-        System.out.println("autowiredService");
+        System.out.println(autowiredService);
     }
 
 

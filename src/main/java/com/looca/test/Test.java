@@ -1,6 +1,7 @@
 package com.looca.test;
 
 import com.looca.AppConfig;
+import com.looca.service.InitializingBeanService;
 import com.looca.service.PrototypeScopeService;
 import com.looca.service.TestService;
 import com.spring.LoocaApplicationContext;
@@ -32,6 +33,12 @@ public class Test {
         System.out.println((PrototypeScopeService) applicationContext.getBean("prototypeScopeService"));
         // endregion
 
-//        testService.test();
+        // region 测试@Autowired
+        testService.testAutowired();
+        // endregion
+
+        // region 测试实现InitializingBean来自定义初始化逻辑
+//        InitializingBeanService initializingBeanService =
+        applicationContext.getBean("initializingBeanService");
     }
 }
