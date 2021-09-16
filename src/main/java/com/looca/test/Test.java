@@ -36,8 +36,14 @@ public class Test {
         // endregion
 
         // region 测试aop
-        IAopService aopService = (IAopService) applicationContext.getBean("aopService");
-        aopService.test();
+//        IAopService aopService = (IAopService) applicationContext.getBean("aopService");
+//        aopService.test();
+        // endregion
+
+        // region 测试Aware(以BeanNameAware为例)
+        TestBeanNameAwareService testBeanNameAwareService =
+                (TestBeanNameAwareService) applicationContext.getBean("testBeanNameAwareService");
+        testBeanNameAwareService.printBeanName();
         // endregion
 
     }

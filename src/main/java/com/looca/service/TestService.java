@@ -7,7 +7,7 @@ import com.spring.annotation.Component;
  * 测试用例service
  * @author looca
  */
-@Component("testService")
+@Component
 public class TestService {
 
     @Autowired

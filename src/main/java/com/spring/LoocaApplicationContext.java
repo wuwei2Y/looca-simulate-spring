@@ -4,6 +4,7 @@ import com.spring.annotation.Autowired;
 import com.spring.annotation.Component;
 import com.spring.annotation.ComponentScan;
 import com.spring.annotation.Scope;
+import com.spring.aware.BeanNameAware;
 import com.spring.tool.CommonConstant;
 
 import java.beans.Introspector;
@@ -88,7 +89,7 @@ public class LoocaApplicationContext {
             // 属性填充
             for (Field field : clazz.getDeclaredFields()) {
 
-                // 如果属性有@Autowired注解修饰则进行自动装配
+                // 如果属性有@Autowired注解修饰则进行自动装配（此处为了简化不通过BeanPostProcessor来实现@Autowired）
                 if (field.isAnnotationPresent(Autowired.class)) {
 
                     field.setAccessible(true);
@@ -96,6 +97,11 @@ public class LoocaApplicationContext {
                     field.set(instance, getBean(field.getName()));
 
                 }
+            }
+
+            // 实现Aware（以BeanNameAware为例）
+            if(instance instanceof BeanNameAware) {
+                ((BeanNameAware)instance).setBeanName(beanName);
             }
 
             // 初始化前
